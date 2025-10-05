@@ -1,4 +1,4 @@
-
+import os
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import ee
@@ -8,12 +8,12 @@ from datetime import datetime, timedelta
 app = Flask(__name__, static_folder='../frontend/static', template_folder='../frontend/templates')
 CORS(app)
 
-EARTH_ENGINE_PROJECT = 'codonautas-2025'
+EARTH_PROJETO = os.getenv('EARTH_PROJETO')
 
 
 # Inicializa Google Earth Engine
 try:
-    ee.Initialize(project=EARTH_ENGINE_PROJECT)  
+    ee.Initialize(project=EARTH_PROJETO)  
     print("✓ Google Earth Engine inicializado")
 except:
     print("⚠ Execute ee.Authenticate() primeiro")
