@@ -56,48 +56,75 @@ async function loadHeatmap(cityId) {
     
     loading.style.display = 'block';
     statsCard.style.display = 'none';
-    
-    // Limpa pontos anteriores
     clearPoints();
+    
+    if (heatmapLayer) {
+        map.removeLayer(heatmapLayer);
+    }
     
     try {
         const response = await fetch(`${API_BASE}/api/heatmap/${cityId}?days=30`);
         const data = await response.json();
         
+        // Verifica se a API retornou um erro
         if (data.error) {
             throw new Error(data.error);
         }
         
+        // Pega os pontos da resposta da API e cria a variável 'heatPoints'.
+        const heatPoints = data.heatmap_points || [];
+        
         currentCity = cityId;
-        
-        // Centraliza o mapa na cidade
         map.setView(data.center, data.zoom);
-        
-        // Remove camada de heatmap anterior
-        if (heatmapLayer) {
-            map.removeLayer(heatmapLayer);
-        }
-        
-        // Adiciona camada de tiles do Earth Engine
-        heatmapLayer = L.tileLayer(data.tile_url, {
+
+        const gradient = {          
+            0.0: '#313695',
+            0.2: '#4575b4',
+            0.4: '#74add1',
+            0.6: '#fdae61',
+            0.8: '#f46d43',
+            1.0: '#a50026'
+          };
+          
+          // heatPoints já vêm normalizados (0–1)
+          heatmapLayer = L.heatLayer(heatPoints, {
+            radius: 25,
+            blur: 35,
             maxZoom: 18,
-            opacity: 0.7
-        }).addTo(map);
+            max: 1.0,
+            minOpacity: 0.25,
+            gradient: gradient
+          }).addTo(map);          
         
-        // Atualiza estatísticas
-        document.getElementById('tempMin').textContent = `${data.statistics.min.toFixed(1)}°C`;
-        document.getElementById('tempMax').textContent = `${data.statistics.max.toFixed(1)}°C`;
-        document.getElementById('tempMean').textContent = `${data.statistics.mean.toFixed(1)}°C`;
-        
+        updateStatsAndLegend(data.statistics, gradient);
         statsCard.style.display = 'block';
-        loading.style.display = 'none';
         
     } catch (error) {
+        alert(`Erro ao carregar mapa de calor: ${error.message}`);
         console.error('Erro ao carregar mapa de calor:', error);
+    } finally {
         loading.style.display = 'none';
-        alert('Erro ao carregar mapa de calor. Verifique se o Earth Engine está autenticado.');
     }
 }
+
+// Atualiza estatísticas e legenda
+function updateStatsAndLegend(stats, gradient) {
+    document.getElementById('tempMin').textContent = `${stats.min.toFixed(1)}°C`;
+    document.getElementById('tempMax').textContent = `${stats.max.toFixed(1)}°C`;
+    document.getElementById('tempMean').textContent = `${stats.mean.toFixed(1)}°C`;
+  
+    const legendGradient = document.querySelector('.legend-gradient');
+    const gradientCss = Object.entries(gradient)
+        .map(([stop, color]) => `${color} ${stop * 100}%`)
+        .join(', ');
+    legendGradient.style.background = `linear-gradient(to right, ${gradientCss})`;
+  
+    document.getElementById('legendMin').textContent = `${stats.min.toFixed(0)}°C`;
+    document.getElementById('legendMid').textContent = `${stats.mean.toFixed(0)}°C`;
+    document.getElementById('legendMax').textContent = `${stats.max.toFixed(0)}°C`;
+  }
+  
+
 
 // Identifica pontos para plantio
 async function findPlantingPoints() {
@@ -119,15 +146,12 @@ async function findPlantingPoints() {
             throw new Error(data.error);
         }
         
-        // Limpa pontos anteriores
         clearPoints();
         
-        // Adiciona marcadores no mapa
         const pointsContainer = document.getElementById('pointsContainer');
         pointsContainer.innerHTML = '';
         
         data.points.forEach((point, index) => {
-            // Cria marcador
             const marker = L.circleMarker([point.lat, point.lon], {
                 radius: 8,
                 fillColor: getColorForTemp(point.temperature),
@@ -137,7 +161,6 @@ async function findPlantingPoints() {
                 fillOpacity: 0.8
             }).addTo(pointsLayer);
             
-            // Popup do marcador
             const popupContent = `
                 <div class="popup-content">
                     <h4>🌳 Ponto Prioritário #${index + 1}</h4>
@@ -148,7 +171,6 @@ async function findPlantingPoints() {
             `;
             marker.bindPopup(popupContent);
             
-            // Adiciona item na lista
             const pointItem = document.createElement('div');
             pointItem.className = 'point-item';
             pointItem.innerHTML = `
@@ -162,22 +184,19 @@ async function findPlantingPoints() {
             pointsContainer.appendChild(pointItem);
         });
         
-        // Mostra lista de pontos
         document.getElementById('pointsList').style.display = 'block';
         document.getElementById('clearPointsBtn').style.display = 'block';
         
-        // Ajusta zoom para mostrar todos os pontos
         if (data.points.length > 0) {
             const bounds = L.latLngBounds(data.points.map(p => [p.lat, p.lon]));
             map.fitBounds(bounds, { padding: [50, 50] });
         }
         
-        loading.style.display = 'none';
-        
     } catch (error) {
         console.error('Erro ao identificar pontos:', error);
-        loading.style.display = 'none';
         alert('Erro ao identificar pontos para plantio');
+    } finally {
+        loading.style.display = 'none';
     }
 }
 
@@ -209,7 +228,7 @@ function getTempClass(temp) {
     return temp >= 37 ? 'temp-hot' : 'temp-warm';
 }
 
-// Event listeners
+// Event listeners que iniciam a aplicação
 document.addEventListener('DOMContentLoaded', () => {
     initMap();
     loadCities();
