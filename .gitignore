@@ -1,0 +1,106 @@
+# ======================================
+# 🐍 BACKEND (Flask / Python)
+# ======================================
+
+# Ambiente virtual
+venv/
+env/
+.venv/
+ENV/
+
+# Arquivos de configuração locais
+.env
+.env.local
+config.json
+credentials.json
+service_account.json
+
+# Cache e logs
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.sqlite3
+*.db
+
+# Arquivos temporários
+*.tmp
+*.bak
+*.swp
+*.DS_Store
+
+# Build e distribuição
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ======================================
+# ⚛️ FRONTEND (React / Node)
+# ======================================
+
+# Node modules
+frontend/node_modules/
+node_modules/
+
+# Build do React
+frontend/build/
+frontend/dist/
+
+# Logs
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/.eslintcache
+
+# Arquivos de ambiente do React
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Cache e editor
+frontend/.parcel-cache/
+frontend/.cache/
+frontend/.vscode/
+frontend/.idea/
+
+# ======================================
+# 🧠 GERAL
+# ======================================
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Configurações de editor
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# ======================================
+# 🛰️ GOOGLE EARTH ENGINE / GEE
+# ======================================
+
+# Tokens e autenticação
+gee_auth/
+*.json
+token.json
+credentials-earthengine.json
+
+# ======================================
+# 🔧 TESTES / NOTEBOOKS
+# ======================================
+
+.ipynb_checkpoints/
+__pycache__/
+tests/__pycache__/
+.coverage
+htmlcov/
+coverage.xml
+*.cover
+*.py,cover
+nosetests.xml
